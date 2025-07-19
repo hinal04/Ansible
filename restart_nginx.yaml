@@ -1,0 +1,31 @@
+---
+- name: Restart nginx service serially
+  hosts: all
+  serial: 1
+  become: yes ##Requires elevated privileges
+  tasks:
+    - name: Check nginx service status
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+      register: nginx_status
+      failed_when: nginx_status.state != 'started'
+
+    - name: Restart nginx service
+      ansible.builtin.systemd:
+        name: nginx
+        state: restarted
+      register: restart_result
+
+    - name: Verify nginx service is running
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+      register: post_restart_status
+
+    - name: Log restart status
+      ansible.builtin.debug:
+        msg: "nginx service on {{ inventory_hostname }} restarted: {{ restart_result.changed }}"
+
+
+## Run the playbook : ansible-playbook restart_nginx.yml
