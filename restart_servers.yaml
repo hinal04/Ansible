@@ -17,3 +17,7 @@
     - name: Log reboot status
       ansible.builtin.debug:
         msg: "Server {{ inventory_hostname }} rebooted: {{ reboot_result.rebooted }}"
+
+
+
+## Run the playbook using : ansible-playbook restart_servers.yml
