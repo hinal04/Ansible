@@ -1,0 +1,48 @@
+---
+- name: Install and start nginx web server serially
+  hosts: all
+  serial: 1
+  become: yes
+  tasks:
+    - name: Update package cache (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+
+    - name: Update package cache (RedHat/CentOS)
+      ansible.builtin.dnf:
+        update_cache: yes
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install nginx (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+      when: ansible_os_family == 'Debian'
+
+    - name: Install nginx (RedHat/CentOS)
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Start and enable nginx service
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+        enabled: yes
+      register: nginx_start_result
+
+    - name: Verify nginx service is running
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+      register: nginx_status
+
+    - name: Log nginx installation and start status
+      ansible.builtin.debug:
+        msg: "nginx on {{ inventory_hostname }} installed and started: {{ nginx_start_result.changed }}"
+
+
+## Run the playbook : ansible-playbook install_start_nginx.yml
